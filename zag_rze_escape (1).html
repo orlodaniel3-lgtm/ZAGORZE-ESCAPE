@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Zagórze Escape 💩</title>
+    <!-- Tagi PWA i Mobile App -->
+    <meta name="theme-color" content="#78350f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Zagórze Escape">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIlphZ8OzcnplIEVzY2FwZSDwn5GKIiwKICAic2hvcnRfbmFtZSI6ICJaaWfDs3J6ZSIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGYxNzJhIiwKICAidGhlbWVfY29sb3IiOiAiIzc4MzUwZiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbDt1dGY4LDxzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCc+PHRleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCc+85-Cgk8L3RleHQ+PC9zdmc+IiwKICAgICAgInNpemVzIjogIjUxMng1MTIiLAogICAgICAidHlwZSI6ICJpbWFnZS9zdmcreG1sIiwKICAgICAgInB1cnBvc2UiOiAiYW55IG1hc2thYmxlIgogICAgfQogIF0KfQ==">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+        }
+        /* Style sterowania mobilnego */
+        .touch-btn {
+            background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            box-shadow: 0 4px 0 #0f172a, inset 0 1px 0 rgba(255,255,255,0.2);
+            touch-action: none;
+        }
+        .touch-btn:active, .touch-btn.active {
+            background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+            box-shadow: 0 1px 0 #78350f, inset 0 2px 4px rgba(0,0,0,0.4);
+            transform: translateY(3px);
+        }
+        .custom-btn {
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 6px 0 #92400e, 0 10px 15px rgba(0,0,0,0.4);
+            transition: all 0.1s ease;
+        }
+        .custom-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #92400e, 0 4px 6px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden select-none">
+
+    <!-- Główny kontener gry -->
+    <div class="relative w-full max-w-4xl bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border-4 border-amber-800 flex flex-col">
+        
+        <!-- Pasek nagłówka / Statystyk -->
+        <div class="bg-amber-950 px-4 py-3 flex justify-between items-center border-b-4 border-amber-900 z-10 text-xs sm:text-base font-bold">
+            <div class="flex items-center space-x-2">
+                <span class="text-amber-400 text-lg">💩</span>
+                <span class="text-amber-300 pixel-font tracking-wider">ZAGÓRZE ESCAPE</span>
+            </div>
+            
+            <div class="flex space-x-6 items-center">
+                <!-- Licznik Kostek Brukowych -->
+                <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <span class="text-xl">🧱</span>
+                    <span id="score-text" class="pixel-font text-yellow-400">0</span>
+                </div>
+                
+                <!-- Licznik Życia -->
+                <div class="flex items-center space-x-2 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                    <span class="text-xl">❤️</span>
+                    <span id="lives-text" class="pixel-font text-red-500">3</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Gry -->
+        <div class="relative w-full h-[60vh] min-h-[350px] max-h-[550px] bg-sky-300 overflow-hidden flex items-center justify-center">
+            <canvas id="gameCanvas" class="w-full h-full touch-none"></canvas>
+
+            <!-- Ekran Startowy -->
+            <div id="start-screen" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
+                <h1 class="text-3xl sm:text-5xl font-black text-amber-400 mb-2 drop-shadow-[0_4px_0_rgba(0,0,0,0.8)] pixel-font">ZAGÓRZE ESCAPE 💩</h1>
+                <p class="text-slate-300 mb-4 max-w-md text-sm sm:text-base">Pomóż <strong>Antek</strong>owi uciec z Wrzosowisk Zagórza! Każdy poziom jest teraz <strong>losowo generowany</strong>!</p>
+                
+                <!-- Wybór poziomu trudności -->
+                <div class="mb-6 flex flex-col items-center gap-2">
+                    <span class="text-xs sm:text-sm font-bold text-amber-300 pixel-font">WYBIERZ TRYB TRUDNOŚCI:</span>
+                    <div class="flex gap-4">
+                        <button id="mode-normal-btn" class="px-4 py-2 rounded-lg font-bold border-2 border-emerald-500 bg-emerald-700 text-white cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm">
+                            🟢 ZWYKŁY
+                        </button>
+                        <button id="mode-hard-btn" class="px-4 py-2 rounded-lg font-bold border-2 border-slate-600 bg-slate-800 text-slate-400 cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm">
+                            💀 TRUDNY
+                        </button>
+                    </div>
+                </div>
+
+                <button id="start-btn" class="custom-btn px-8 py-4 rounded-xl text-amber-950 font-black text-xl pixel-font cursor-pointer hover:brightness-110">
+                    ROZPOCZNIJ UCIECHKĘ
+                </button>
+
+                <!-- Losowane napisy / cytaty w prawym dolnym rogu menu -->
+                <div class="absolute bottom-3 right-4 max-w-[220px] sm:max-w-[300px] text-right pointer-events-none">
+                    <span id="random-quote-text" class="text-[10px] sm:text-xs italic text-amber-300/80 font-bold drop-shadow"></span>
+                </div>
+            </div>
+
+            <!-- Ekran Przegranej -->
+            <div id="game-over-screen" class="hidden absolute inset-0 bg-red-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20">
+                <h2 class="text-3xl sm:text-5xl font-black text-red-500 mb-4 pixel-font drop-shadow-lg">ZAPADAŁEŚ W ZAGÓRZU!</h2>
+                <p class="text-red-200 mb-6 text-base sm:text-lg">Przeszkody okazały się zbyt trudne. Antek nie dał rady uciec...</p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="restart-btn-lost" class="custom-btn px-6 py-3 rounded-xl text-amber-950 font-black text-lg pixel-font cursor-pointer">
+                        SPRÓBUJ PONOWNIE
+                    </button>
+                    <button id="home-btn-lost" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border-2 border-slate-600 font-black text-sm pixel-font cursor-pointer">
+                        MENU GŁÓWNE
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ekran Wygranej -->
+            <div id="win-screen" class="hidden absolute inset-0 bg-emerald-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center z-20 animate-fade-in">
+                <div class="text-6xl mb-4 animate-bounce">🎉 🏃‍♂️ 🌸</div>
+                <h2 class="text-3xl sm:text-5xl font-black text-amber-300 mb-4 pixel-font drop-shadow-[0_4px_0_#000]">UCIEKŁEŚ Z ZAGÓRZA!</h2>
+                <p class="text-emerald-200 text-base sm:text-xl mb-2">Brawo! Antek przedarł się przez pole wrzosów!</p>
+                <div class="bg-black/40 px-6 py-3 rounded-xl mb-6 border border-emerald-500/30">
+                    <span class="text-slate-300">Zebrana kostka brukowa: </span>
+                    <span id="final-score" class="pixel-font text-yellow-400 text-xl">0</span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="restart-btn-win" class="custom-btn px-8 py-4 rounded-xl text-amber-950 font-black text-xl pixel-font cursor-pointer hover:brightness-110">
+                        ZAGRAJ PONOWNIE
+                    </button>
+                    <button id="home-btn-win" class="px-6 py-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border-2 border-slate-600 font-black text-sm pixel-font cursor-pointer">
+                        MENU GŁÓWNE
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sterowanie mobilne / podgląd sterowania -->
+        <div class="bg-slate-950 p-3 border-t-2 border-slate-800 flex justify-between items-center text-slate-400 text-xs sm:text-sm">
+            <div class="hidden md:block">
+                <span>Sterowanie: <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">A</kbd>/<kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">D</kbd> lub <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">←</kbd><kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">→</kbd> ruch | <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">Spacja</kbd>/<kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">W</kbd> skok</span>
+            </div>
+
+            <!-- Przyciski ekranowe dla dotyku (zoptymalizowane pod smartfony) -->
+            <div class="flex w-full md:w-auto justify-between items-center gap-3">
+                <div class="flex gap-2">
+                    <button id="btn-left" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl font-black text-amber-400 border border-slate-700 select-none cursor-pointer">←</button>
+                    <button id="btn-right" class="touch-btn w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl font-black text-amber-400 border border-slate-700 select-none cursor-pointer">→</button>
+                </div>
+                <button id="btn-jump" class="touch-btn px-6 sm:px-8 h-14 sm:h-16 rounded-xl font-black text-amber-300 pixel-font border border-amber-600/50 select-none cursor-pointer text-sm sm:text-base flex items-center justify-center gap-2">
+                    <span>SKOK</span> ⬆️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skrypty Gry -->
+    <script>
+        // Główna konfiguracja i stan gry
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Lista losowych cytatów w menu
+        const menuQuotes = [
+            "idealna para zagórze i miska z gównem",
+            "antek co to za kwiatek",
+            "jogurt z trocinami",
+            "NIE POJEM",
+            "mnie znali w poprzedniej szkole",
+            "dzwonie do kamińskiej",
+            "to jest pezpodstawne",
+            "Tu , tu na zielonym",
+            "piramidy z kostki brukowej"
+        ];
+
+        function setRandomMenuQuote() {
+            const quoteElem = document.getElementById('random-quote-text');
+            if (quoteElem) {
+                const randomIndex = Math.floor(Math.random() * menuQuotes.length);
+                quoteElem.innerText = `"${menuQuotes[randomIndex]}"`;
+            }
+        }
+
+        // UI Elementy
+        const scoreText = document.getElementById('score-text');
+        const livesText = document.getElementById('lives-text');
+        const finalScoreText = document.getElementById('final-score');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const winScreen = document.getElementById('win-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtnLost = document.getElementById('restart-btn-lost');
+        const restartBtnWin = document.getElementById('restart-btn-win');
+        const homeBtnLost = document.getElementById('home-btn-lost');
+        const homeBtnWin = document.getElementById('home-btn-win');
+
+        // Klawisze i sterowanie
+        const keys = { left: false, right: false, up: false };
+
+        // Zoptymalizowane mobilne sterowanie dotykowe (Multi-Touch)
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnJump = document.getElementById('btn-jump');
+
+        const bindTouchEvents = (elem, keyName) => {
+            const startHandler = (e) => {
+                e.preventDefault();
+                keys[keyName] = true;
+                elem.classList.add('active');
+                if (keyName === 'up' && gameState === 'PLAYING') {
+                    player.jump();
+                }
+            };
+
+            const endHandler = (e) => {
+                e.preventDefault();
+                keys[keyName] = false;
+                elem.classList.remove('active');
+            };
+
+            elem.addEventListener('touchstart', startHandler, { passive: false });
+            elem.addEventListener('touchend', endHandler, { passive: false });
+            elem.addEventListener('touchcancel', endHandler, { passive: false });
+            elem.addEventListener('mousedown', startHandler);
+            elem.addEventListener('mouseup', endHandler);
+            elem.addEventListener('mouseleave', endHandler);
+        };
+
+        bindTouchEvents(btnLeft, 'left');
+        bindTouchEvents(btnRight, 'right');
+        bindTouchEvents(btnJump, 'up');
+
+        // Gesty na samym Canvasie (Swipe / Tap skok)
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (gameState !== 'PLAYING') return;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+        }, { passive: true });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (gameState !== 'PLAYING') return;
+            const touch = e.touches[0];
+            const diffX = touch.clientX - touchStartX;
+            const diffY = touch.clientY - touchStartY;
+
+            // Swipowanie lewo / prawo
+            if (Math.abs(diffX) > 20) {
+                keys.left = diffX < 0;
+                keys.right = diffX > 0;
+            }
+
+            // Swipe w górę = Skok
+            if (diffY < -35) {
+                player.jump();
+                touchStartY = touch.clientY; // zresetuj by nie powtarzać masowo
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', () => {
+            // Zresetuj ruch z gestów po podniesieniu palca
+            keys.left = false;
+            keys.right = false;
+        }, { passive: true });
+
+        window.addEventListener('keydown', (e) => {
+            if (['ArrowLeft', 'a', 'A'].includes(e.key)) keys.left = true;
+            if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.right = true;
+            if (['ArrowUp', 'w', 'W', ' '].includes(e.key)) {
+                if (!keys.up) player.jump();
+                keys.up = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (['ArrowLeft', 'a', 'A'].includes(e.key)) keys.left = false;
+            if (['ArrowRight', 'd', 'D'].includes(e.key)) keys.right = false;
+            if (['ArrowUp', 'w', 'W', ' '].includes(e.key)) keys.up = false;
+        });
+
+        // Dopasowanie rozmiaru canvasa
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Parametry świata
+        const GRAVITY = 0.5;
+        let LEVEL_WIDTH = 8500;
+        let cameraX = 0;
+        let gameState = 'START'; // START, PLAYING, GAMEOVER, WIN
+        let difficultyMode = 'normal'; // 'normal' lub 'hard'
+        let score = 0;
+        let lives = 3;
+
+        // Przełączanie trybów trudności
+        const modeNormalBtn = document.getElementById('mode-normal-btn');
+        const modeHardBtn = document.getElementById('mode-hard-btn');
+
+        modeNormalBtn.addEventListener('click', () => {
+            difficultyMode = 'normal';
+            modeNormalBtn.className = "px-4 py-2 rounded-lg font-bold border-2 border-emerald-500 bg-emerald-700 text-white cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm";
+            modeHardBtn.className = "px-4 py-2 rounded-lg font-bold border-2 border-slate-600 bg-slate-800 text-slate-400 cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm";
+        });
+
+        modeHardBtn.addEventListener('click', () => {
+            difficultyMode = 'hard';
+            modeHardBtn.className = "px-4 py-2 rounded-lg font-bold border-2 border-red-500 bg-red-700 text-white cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm";
+            modeNormalBtn.className = "px-4 py-2 rounded-lg font-bold border-2 border-slate-600 bg-slate-800 text-slate-400 cursor-pointer transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm";
+        });
+
+        // Klasa Gracza - ANTEK
+        class Player {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = 80;
+                this.y = 100;
+                this.width = 40;
+                this.height = 64;
+                this.vx = 0;
+                this.vy = 0;
+                this.speed = 3.8;
+                this.jumpForce = -11.5;
+                this.isGrounded = false;
+                this.facingRight = true;
+                this.poweredUpTimer = 0; // Stan Monstery
+                this.invulnerableTimer = 0;
+            }
+
+            jump() {
+                if (this.isGrounded) {
+                    this.vy = this.jumpForce * (this.poweredUpTimer > 0 ? 1.25 : 1.0);
+                    this.isGrounded = false;
+                }
+            }
+
+            update() {
+                // Obsługa wzmocnienia
+                if (this.poweredUpTimer > 0) this.poweredUpTimer--;
+                if (this.invulnerableTimer > 0) this.invulnerableTimer--;
+
+                // Poruszanie
+                if (keys.left) {
+                    this.vx = -this.speed * (this.poweredUpTimer > 0 ? 1.3 : 1.0);
+                    this.facingRight = false;
+                } else if (keys.right) {
+                    this.vx = this.speed * (this.poweredUpTimer > 0 ? 1.3 : 1.0);
+                    this.facingRight = true;
+                } else {
+                    this.vx *= 0.8; // Tłumienie
+                }
+
+                // Grawitacja
+                this.vy += GRAVITY;
+
+                // Aktualizacja pozycji
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Kolizje z ziemią i platformami
+                this.isGrounded = false;
+                for (let platform of levelPlatforms) {
+                    if (
+                        this.x + this.width > platform.x &&
+                        this.x < platform.x + platform.width &&
+                        this.y + this.height >= platform.y &&
+                        this.y + this.height <= platform.y + platform.height + this.vy
+                    ) {
+                        this.y = platform.y - this.height;
+                        this.vy = 0;
+                        this.isGrounded = true;
+                    }
+                }
+
+                // Ograniczenia mapy
+                if (this.x < 0) this.x = 0;
+                if (this.y > canvas.height + 100) {
+                    takeDamage();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - cameraX, this.y);
+
+                // Efekt świecenia przy wzmocnieniu Monsterą
+                if (this.poweredUpTimer > 0) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#10b981';
+                }
+
+                // Efekt migania po otrzymaniu obrażeń
+                if (this.invulnerableTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) {
+                    ctx.globalAlpha = 0.5;
+                }
+
+                // 1. NAPIS "ANTEK" NAD GŁOWĄ
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 3;
+                ctx.font = 'bold 12px "Press Start 2P", cursive';
+                ctx.textAlign = 'center';
+                ctx.strokeText('ANTEK', this.width / 2, -15);
+                ctx.fillText('ANTEK', this.width / 2, -15);
+
+                // Odbicie lustrzane dla kierunku w lewo
+                if (!this.facingRight) {
+                    ctx.translate(this.width, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // 2. SZATA MNICHA (Brązowa)
+                ctx.fillStyle = '#78350f'; // Ciemny brąz
+                ctx.beginPath();
+                ctx.roundRect(4, 20, 32, 44, [8, 8, 2, 2]);
+                ctx.fill();
+
+                // Pasek mnicha (sznur)
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(8, 40, 24, 4);
+
+                // Rękawy szaty
+                ctx.fillStyle = '#92400e';
+                ctx.fillRect(0, 24, 10, 20);
+                ctx.fillRect(30, 24, 10, 20);
+
+                // 3. GŁOWĄ I SKÓRA
+                ctx.fillStyle = '#fde047'; // Karnacja / Ciepły odcień
+                ctx.fillRect(10, 8, 20, 16);
+
+                // Oczy
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(this.facingRight ? 22 : 12, 14, 3, 3);
+
+                // Kręcone brązowe włosy
+                ctx.fillStyle = '#451a03';
+                ctx.beginPath();
+                ctx.arc(12, 8, 6, 0, Math.PI * 2);
+                ctx.arc(18, 6, 6, 0, Math.PI * 2);
+                ctx.arc(24, 7, 6, 0, Math.PI * 2);
+                ctx.arc(28, 12, 5, 0, Math.PI * 2);
+                ctx.arc(10, 12, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Uśmiech
+                ctx.strokeStyle = '#78350f';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(this.facingRight ? 22 : 14, 18, 3, 0, Math.PI);
+                ctx.stroke();
+
+                // Dłonie
+                ctx.fillStyle = '#fde047';
+                ctx.fillRect(this.facingRight ? 32 : -2, 38, 6, 6);
+
+                ctx.restore();
+            }
+        }
+
+        // Klasa Przeciwnika - MISKA Z BŁOTEM
+        class BowlEnemy {
+            constructor(x, y, patrolDistance) {
+                this.x = x;
+                this.startX = x;
+                this.y = y;
+                this.width = 36;
+                this.height = 24;
+                this.patrolDistance = patrolDistance;
+                this.speed = 2.2;
+                this.direction = 1;
+                this.mudAnimationTimer = Math.random() * 10;
+            }
+
+            update() {
+                this.mudAnimationTimer += 0.1;
+                // Ruch patrolujący / goniący jeśli Antek jest blisko
+                const distToPlayer = player.x - this.x;
+                const detectRange = (difficultyMode === 'hard') ? 380 : 260;
+                if (Math.abs(distToPlayer) < detectRange) {
+                    this.direction = distToPlayer > 0 ? 1 : -1;
+                    this.speed = (difficultyMode === 'hard') ? 3.6 : 2.8;
+                } else {
+                    this.speed = (difficultyMode === 'hard') ? 2.5 : 2.0;
+                    if (Math.abs(this.x - this.startX) > this.patrolDistance) {
+                        this.direction *= -1;
+                    }
+                }
+
+                this.x += this.speed * this.direction;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - cameraX, this.y);
+
+                // Cień miski
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(18, 22, 16, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Korpus miski (spód metaliczno-gliniany)
+                ctx.fillStyle = '#64748b';
+                ctx.beginPath();
+                ctx.arc(18, 10, 16, 0, Math.PI);
+                ctx.fill();
+
+                // BŁOTO W MISCE - ciemnobrązowa maziowata zawartość
+                ctx.fillStyle = '#3f1d0b';
+                ctx.beginPath();
+                ctx.ellipse(18, 10, 15, 6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Chlapiące krople błota nad miską podczas biegu
+                ctx.fillStyle = '#52250c';
+                const splash1Y = Math.sin(this.mudAnimationTimer) * 4;
+                const splash2Y = Math.cos(this.mudAnimationTimer * 1.3) * 3;
+                ctx.beginPath();
+                ctx.arc(10, 5 + splash1Y, 3, 0, Math.PI * 2);
+                ctx.arc(26, 6 + splash2Y, 2.5, 0, Math.PI * 2);
+                ctx.arc(18, 3 + splash1Y * 0.5, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bąbelki w błocie
+                ctx.fillStyle = '#78350f';
+                ctx.beginPath();
+                ctx.arc(14, 10 + Math.sin(this.mudAnimationTimer) * 1.5, 2, 0, Math.PI * 2);
+                ctx.arc(22, 11 + Math.cos(this.mudAnimationTimer) * 1.5, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Groźne oczy miski wyłaniające się z błota
+                ctx.fillStyle = '#ef4444';
+                const eyeOffset = this.direction > 0 ? 4 : 0;
+                ctx.fillRect(10 + eyeOffset, 9, 4, 4);
+                ctx.fillRect(20 + eyeOffset, 9, 4, 4);
+
+                // Wykończenie krawędzi miski
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(18, 10, 16, 5, 0, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // Klasa Przeszkody - KUPA 💩
+        class PoopObstacle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 32;
+                this.height = 32;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.font = '28px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('💩', this.x - cameraX + 16, this.y + 16);
+                ctx.restore();
+            }
+        }
+
+        // Klasa Monety - KOSTKA BRUKOWA 🧱
+        class Cobblestone {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 24;
+                this.height = 24;
+                this.collected = false;
+                this.rot = Math.random() * Math.PI;
+            }
+
+            draw() {
+                if (this.collected) return;
+                ctx.save();
+                ctx.translate(this.x - cameraX + 12, this.y + 12);
+                
+                // Szara kanciasta kostka brukowa
+                ctx.fillStyle = '#64748b';
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.rect(-10, -8, 20, 16);
+                ctx.fill();
+                ctx.stroke();
+
+                // Faktura kostki
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(-6, -4, 6, 4);
+                ctx.fillRect(2, 2, 5, 4);
+
+                ctx.restore();
+            }
+        }
+
+        // Klasa Wzmocnienia - MONSTERA 🌿
+        class MonsteraPowerup {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 30;
+                this.height = 30;
+                this.collected = false;
+                this.floatOffset = Math.random() * Math.PI * 2;
+            }
+
+            draw() {
+                if (this.collected) return;
+                this.floatOffset += 0.05;
+                const offsetY = Math.sin(this.floatOffset) * 4;
+
+                ctx.save();
+                ctx.translate(this.x - cameraX + 15, this.y + 15 + offsetY);
+
+                // Rysowanie Liścia Monstery
+                ctx.fillStyle = '#10b981';
+                ctx.beginPath();
+                ctx.arc(0, 0, 14, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Wcięcia monstery
+                ctx.fillStyle = '#7dd3fc';
+                ctx.fillRect(-12, -4, 6, 8);
+                ctx.fillRect(6, -4, 6, 8);
+                ctx.fillRect(-3, -12, 6, 6);
+
+                ctx.restore();
+            }
+        }
+
+        // Klasa Przeszkody Specjalnej (Tryb Trudny) - CHMURA BŁOTNA
+        class MudCloud {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 60;
+                this.height = 30;
+                this.dropTimer = Math.floor(Math.random() * 40);
+                this.drops = [];
+            }
+
+            update() {
+                this.dropTimer++;
+                // Zmniejszona częstotliwość spadania kropli błota (co 90 klatek zamiast 45)
+                if (this.dropTimer % 90 === 0) {
+                    this.drops.push({ x: this.x + Math.random() * 40 + 10, y: this.y + 25, vy: 3 });
+                }
+
+                for (let d of this.drops) {
+                    d.y += d.vy;
+
+                    // Kolizja kropli błota z gracza
+                    if (player.x < d.x + 6 && player.x + player.width > d.x &&
+                        player.y < d.y + 8 && player.y + player.height > d.y) {
+                        takeDamage();
+                    }
+                }
+
+                // Usuwanie kropli, które spadły nisko
+                this.drops = this.drops.filter(d => d.y < canvas.height - 30);
+            }
+
+            draw() {
+                ctx.save();
+                // Rysowanie ciemnej chmury błotnej
+                ctx.fillStyle = '#451a03';
+                ctx.beginPath();
+                ctx.arc(this.x - cameraX + 15, this.y + 15, 18, 0, Math.PI * 2);
+                ctx.arc(this.x - cameraX + 35, this.y + 10, 22, 0, Math.PI * 2);
+                ctx.arc(this.x - cameraX + 50, this.y + 18, 16, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Spadające krople błota
+                ctx.fillStyle = '#78350f';
+                for (let d of this.drops) {
+                    ctx.beginPath();
+                    ctx.arc(d.x - cameraX, d.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        // Deklaracja zmiennych poziomu
+        let player = new Player();
+        let levelPlatforms = [];
+        let poops = [];
+        let enemies = [];
+        let coins = [];
+        let monsteras = [];
+        let mudClouds = [];
+        let finishSignX = 8200;
+
+        // PROCEDURALNA GENERACJA POZIOMU
+        function initLevel() {
+            const groundY = canvas.height - 50;
+            const isHard = (difficultyMode === 'hard');
+            
+            // Długość poziomu: Znacznie wydłużono! (8500px w zwykłym, 11000px w trudnym)
+            LEVEL_WIDTH = isHard ? 11000 : 8500;
+            finishSignX = LEVEL_WIDTH - 400;
+
+            levelPlatforms = [];
+            poops = [];
+            enemies = [];
+            coins = [];
+            monsteras = [];
+            mudClouds = [];
+
+            // 1. Ziemia podłoża z dziurami / wyrwami w terenie
+            let currentX = 0;
+            while (currentX < LEVEL_WIDTH) {
+                const hasGap = isHard ? (currentX > 500 && currentX < finishSignX - 400 && Math.random() < 0.35) 
+                                      : (currentX > 800 && currentX < finishSignX - 500 && Math.random() < 0.15);
+                
+                const sectionWidth = isHard ? (Math.floor(Math.random() * 250) + 300) 
+                                            : (Math.floor(Math.random() * 350) + 450);
+
+                if (!hasGap) {
+                    levelPlatforms.push({
+                        x: currentX,
+                        y: groundY,
+                        width: sectionWidth,
+                        height: 50,
+                        type: 'ground'
+                    });
+                } else {
+                    const gapWidth = isHard ? (Math.floor(Math.random() * 110) + 100)  // Dziury 100-210px
+                                            : (Math.floor(Math.random() * 60) + 75);   // Dziury 75-135px
+                    currentX += gapWidth;
+                }
+                currentX += sectionWidth;
+            }
+
+            // 2. Proceduralne wiszące platformy, przeszkody, przeciwnicy i monety
+            let stepX = 300;
+            while (stepX < finishSignX - 300) {
+                const stepWidth = Math.floor(Math.random() * 120) + 110;
+                const platY = groundY - (Math.floor(Math.random() * 3) + 1) * 60; // Wysokość platformy
+
+                // Platforma wisząca
+                levelPlatforms.push({
+                    x: stepX,
+                    y: platY,
+                    width: stepWidth,
+                    height: 20,
+                    type: 'platform'
+                });
+
+                // Monety na platformie
+                const coinCount = Math.floor(Math.random() * 4) + 1;
+                for (let c = 0; c < coinCount; c++) {
+                    coins.push(new Cobblestone(stepX + 15 + c * 30, platY - 30));
+                }
+
+                // Monstery (Wzmocnienia) - Mniej w trybie zwykłym (12%), bardzo rzadkie w trudnym (5%)
+                const monsteraChance = isHard ? 0.05 : 0.12;
+                if (Math.random() < monsteraChance) {
+                    monsteras.push(new MonsteraPowerup(stepX + stepWidth / 2 - 15, platY - 40));
+                }
+
+                // Chmury z deszczem błota w trybie trudnym - znacznie skorygowana szansa (12% zamiast 35%)
+                if (isHard && Math.random() < 0.12) {
+                    mudClouds.push(new MudCloud(stepX + 20, platY - 140));
+                }
+
+                // Generowanie przeszkód (Kupy 💩) i przeciwników (Miski) na podłożu
+                const groundSegment = levelPlatforms.find(p => p.type === 'ground' && p.x <= stepX && p.x + p.width >= stepX + 180);
+                if (groundSegment) {
+                    // Kupa 💩 (Zwiększona gęstość)
+                    const poopChance = isHard ? 0.85 : 0.65;
+                    if (Math.random() < poopChance) {
+                        poops.push(new PoopObstacle(stepX + 60, groundY - 32));
+                    }
+
+                    // Potrójne lub podwójne kupy w trybie trudnym
+                    if (isHard && Math.random() < 0.4) {
+                        poops.push(new PoopObstacle(stepX + 95, groundY - 32));
+                    }
+
+                    // Miska przeciwnik 🥣
+                    const enemyChance = isHard ? 0.75 : 0.55;
+                    if (Math.random() < enemyChance) {
+                        const patrolDist = isHard ? 220 : 140;
+                        const enemy = new BowlEnemy(stepX + 140, groundY - 24, patrolDist);
+                        enemies.push(enemy);
+                    }
+                }
+
+                stepX += stepWidth + Math.floor(Math.random() * 120) + (isHard ? 120 : 90);
+            }
+        }
+
+        // Obsługa obrażeń
+        function takeDamage() {
+            if (player.invulnerableTimer > 0) return;
+            lives--;
+            livesText.innerText = lives;
+            player.invulnerableTimer = 60;
+
+            if (lives <= 0) {
+                gameState = 'GAMEOVER';
+                gameOverScreen.classList.remove('hidden');
+            } else {
+                player.x = Math.max(100, player.x - 150);
+                player.y = 100;
+                player.vy = 0;
+            }
+        }
+
+        // Rysowanie Tła - Pole Wrzosów i Wioska Zagórze
+        function drawBackground() {
+            const groundY = canvas.height - 50;
+
+            // 1. Niebo z gradientem niebiesko-chmurnym
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.5);
+            skyGradient.addColorStop(0, '#7dd3fc');
+            skyGradient.addColorStop(0.6, '#bae6fd');
+            skyGradient.addColorStop(1, '#e0f2fe');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Chmury
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            for (let i = 0; i < 5; i++) {
+                const cx = ((i * 300) - cameraX * 0.1) % (canvas.width + 400) - 100;
+                ctx.beginPath();
+                ctx.arc(cx, 40 + (i % 3) * 15, 30, 0, Math.PI * 2);
+                ctx.arc(cx + 25, 35 + (i % 3) * 15, 40, 0, Math.PI * 2);
+                ctx.arc(cx + 55, 40 + (i % 3) * 15, 30, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 2. Majestatyczne Góry w tle (Parallax 0.15)
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            for (let i = -100; i <= canvas.width + 100; i += 60) {
+                const mountainX = i;
+                const worldX = i + cameraX * 0.15;
+                const h = Math.sin(worldX * 0.003) * 90 + Math.cos(worldX * 0.008) * 40 + 150;
+                ctx.lineTo(mountainX, groundY - h);
+            }
+            ctx.lineTo(canvas.width + 100, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // Zielony las na podnóżu gór (Parallax 0.25)
+            ctx.fillStyle = '#1e3a2b';
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            for (let i = -100; i <= canvas.width + 100; i += 40) {
+                const forestX = i;
+                const worldX = i + cameraX * 0.25;
+                const h = Math.sin(worldX * 0.006) * 35 + 85;
+                ctx.lineTo(forestX, groundY - h);
+            }
+            ctx.lineTo(canvas.width + 100, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // 3. Fioletowe pola wrzosowe (Parallax 0.4)
+            ctx.fillStyle = '#8b5cf6';
+            ctx.beginPath();
+            ctx.moveTo(0, groundY);
+            for (let i = -100; i <= canvas.width + 100; i += 30) {
+                const heatherX = i;
+                const worldX = i + cameraX * 0.4;
+                const h = Math.sin(worldX * 0.01) * 20 + 50;
+                ctx.lineTo(heatherX, groundY - h);
+            }
+            ctx.lineTo(canvas.width + 100, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.fill();
+
+            // Różowe zakwity wrzosowisk
+            ctx.fillStyle = '#d946ef';
+            for (let i = 0; i < canvas.width + 200; i += 40) {
+                const wx = i + cameraX * 0.4;
+                const h = Math.sin(wx * 0.01) * 20 + 45;
+                ctx.beginPath();
+                ctx.arc(i - (cameraX * 0.4) % 40, groundY - h, 14, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 4. Drewniane chatki góralskie z podwójnymi strzechami w tle (Zagórze Village)
+            const villageHouses = [
+                { x: 150, scale: 0.95 },
+                { x: 420, scale: 0.8 },
+                { x: 780, scale: 1.1 },
+                { x: 1150, scale: 0.85 },
+                { x: 1450, scale: 1.0 },
+                { x: 1950, scale: 0.9 },
+                { x: 2350, scale: 1.05 },
+                { x: 2750, scale: 0.85 },
+                { x: 3150, scale: 1.0 }
+            ];
+
+            for (let house of villageHouses) {
+                const hx = house.x - cameraX * 0.75;
+                if (hx < -200 || hx > canvas.width + 200) continue;
+                const hy = groundY - 5;
+                const s = house.scale;
+
+                ctx.save();
+                ctx.translate(hx, hy);
+
+                // Ściana z drewna i gliny
+                ctx.fillStyle = '#b45309';
+                ctx.fillRect(-45 * s, -40 * s, 90 * s, 40 * s);
+                ctx.fillStyle = '#78350f';
+                // Bele drewniane
+                for (let b = -35; b < 0; b += 8) {
+                    ctx.fillRect(-45 * s, b * s, 90 * s, 2 * s);
+                }
+
+                // Drzwi
+                ctx.fillStyle = '#451a03';
+                ctx.fillRect(-10 * s, -28 * s, 20 * s, 28 * s);
+
+                // Strzechowy słomiany dach
+                ctx.fillStyle = '#9a3412';
+                ctx.beginPath();
+                ctx.moveTo(-55 * s, -40 * s);
+                ctx.lineTo(0 * s, -75 * s);
+                ctx.lineTo(55 * s, -40 * s);
+                ctx.closePath();
+                ctx.fill();
+
+                // Słoma / Plecionka na dachu
+                ctx.fillStyle = '#d97706';
+                ctx.beginPath();
+                ctx.moveTo(-50 * s, -42 * s);
+                ctx.lineTo(0 * s, -70 * s);
+                ctx.lineTo(50 * s, -42 * s);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            // Piramidy / Stosy kostki brukowej w wiosce
+            const stonePiles = [300, 650, 1050, 1600, 2100, 2550, 2950];
+            for (let px of stonePiles) {
+                const sx = px - cameraX * 0.85;
+                if (sx < -100 || sx > canvas.width + 100) continue;
+
+                ctx.save();
+                ctx.translate(sx, groundY);
+                ctx.fillStyle = '#64748b';
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1.5;
+
+                // Rysowanie piramidki z bruku
+                const layers = 4;
+                for (let l = 0; l < layers; l++) {
+                    const count = layers - l;
+                    const startX = -count * 6;
+                    const y = -l * 8 - 8;
+                    for (let c = 0; c < count; c++) {
+                        ctx.fillRect(startX + c * 12, y, 10, 7);
+                        ctx.strokeRect(startX + c * 12, y, 10, 7);
+                    }
+                }
+                ctx.restore();
+            }
+
+            // Polna wyboista ścieżka (Baza podłogi)
+            ctx.fillStyle = '#a16207';
+            ctx.fillRect(0, groundY, canvas.width, 50);
+            ctx.fillStyle = '#713f12';
+            ctx.fillRect(0, groundY + 10, canvas.width, 40);
+        }
+
+        // Rysowanie Ziemi i Platform
+        function drawPlatforms() {
+            for (let p of levelPlatforms) {
+                const drawX = p.x - cameraX;
+                if (drawX + p.width < 0 || drawX > canvas.width) continue;
+
+                if (p.type === 'ground') {
+                    // Trawa i ziemia wrzosowiska
+                    ctx.fillStyle = '#15803d'; // Ziemia/Trawa
+                    ctx.fillRect(drawX, p.y, p.width, 15);
+                    ctx.fillStyle = '#451a03'; // Warstwa gleby
+                    ctx.fillRect(drawX, p.y + 15, p.width, p.height - 15);
+
+                    // Fioletowe kwiaty wrzosów na platformie
+                    ctx.fillStyle = '#c084fc';
+                    for (let fx = drawX + 10; fx < drawX + p.width - 10; fx += 25) {
+                        ctx.fillRect(fx, p.y - 4, 6, 6);
+                    }
+                } else {
+                    // Wiszące drewniane platformy
+                    ctx.fillStyle = '#b45309';
+                    ctx.fillRect(drawX, p.y, p.width, p.height);
+                    ctx.fillStyle = '#78350f';
+                    ctx.fillRect(drawX, p.y + p.height - 4, p.width, 4);
+
+                    // Ozdobne pnącza na wiszących platformach
+                    ctx.fillStyle = '#22c55e';
+                    ctx.fillRect(drawX + 8, p.y + p.height, 4, 8);
+                    ctx.fillRect(drawX + p.width - 12, p.y + p.height, 4, 12);
+                }
+            }
+        }
+
+        // Rysowanie Mety / Drogowskazu Ucieczki
+        function drawFinishSign() {
+            const drawX = finishSignX - cameraX;
+            ctx.save();
+            ctx.translate(drawX, canvas.height - 170);
+
+            // Słupek
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(20, 40, 12, 80);
+
+            // Tablica z napisem
+            ctx.fillStyle = '#f59e0b';
+            ctx.strokeStyle = '#78350f';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.roundRect(-20, 0, 92, 45, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Napis na tablicy
+            ctx.fillStyle = '#451a03';
+            ctx.font = 'bold 10px "Press Start 2P"';
+            ctx.textAlign = 'center';
+            ctx.fillText('WYJŚCIE', 26, 20);
+            ctx.fillText('Z ZAGÓRZA', 26, 34);
+
+            ctx.restore();
+        }
+
+        // Główna pętla gry
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState === 'PLAYING') {
+                // Aktualizacja Gracza
+                player.update();
+
+                // Kamera śledząca gracza
+                cameraX = player.x - canvas.width / 3;
+                if (cameraX < 0) cameraX = 0;
+                if (cameraX > LEVEL_WIDTH - canvas.width) cameraX = LEVEL_WIDTH - canvas.width;
+
+                // Rysowanie świata
+                drawBackground();
+                drawPlatforms();
+                drawFinishSign();
+
+                // Rysowanie i obsługa monet (Kostka Brukowa)
+                for (let coin of coins) {
+                    coin.draw();
+                    if (!coin.collected &&
+                        player.x < coin.x + coin.width &&
+                        player.x + player.width > coin.x &&
+                        player.y < coin.y + coin.height &&
+                        player.y + player.height > coin.y) {
+                        coin.collected = true;
+                        score += 1;
+                        scoreText.innerText = score;
+                    }
+                }
+
+                // Rysowanie i obsługa Monster (Power-up)
+                for (let m of monsteras) {
+                    m.draw();
+                    if (!m.collected &&
+                        player.x < m.x + m.width &&
+                        player.x + player.width > m.x &&
+                        player.y < m.y + m.height &&
+                        player.y + player.height > m.y) {
+                        m.collected = true;
+                        player.poweredUpTimer = 300; // Super moc z monstery skrócona do 5 sekund (300 klatek)
+                    }
+                }
+
+                // Rysowanie i obsługa Przeszkód (Kupy 💩)
+                for (let poop of poops) {
+                    poop.draw();
+                    if (player.x < poop.x + poop.width &&
+                        player.x + player.width > poop.x &&
+                        player.y < poop.y + poop.height &&
+                        player.y + player.height > poop.y) {
+                        
+                        // Kupa 💩 zadaje obrażenia zawsze (ulepszenie monstery na nią nie działa!)
+                        takeDamage();
+                    }
+                }
+
+                // Rysowanie i aktualizacja chmur błotnych (w trybie trudnym)
+                for (let cloud of mudClouds) {
+                    cloud.update();
+                    cloud.draw();
+                }
+
+                // Rysowanie i obsługa Przeciwników (Miski)
+                for (let enemy of enemies) {
+                    enemy.update();
+                    enemy.draw();
+
+                    // Kolizja z miską
+                    if (player.x < enemy.x + enemy.width &&
+                        player.x + player.width > enemy.x &&
+                        player.y < enemy.y + enemy.height &&
+                        player.y + player.height > enemy.y) {
+                        
+                        // Zniszczenie miski przez naskok od góry lub gdy gracz posiada ulepszenie z Monstery
+                        if (player.vy > 0 && player.y + player.height - player.vy <= enemy.y + 10 || player.poweredUpTimer > 0) {
+                            enemies = enemies.filter(e => e !== enemy);
+                            player.vy = -8; // Odbicie
+                        } else {
+                            takeDamage();
+                        }
+                    }
+                }
+
+                // Rysowanie gracza
+                player.draw();
+
+                // Warunek Wygranej - Dotarcie do Mety
+                if (player.x >= finishSignX) {
+                    gameState = 'WIN';
+                    finalScoreText.innerText = score;
+                    winScreen.classList.remove('hidden');
+                }
+            } else {
+                // Gdy gra jest w menu / pauzie, wciąż rysujemy estetyczne tło
+                drawBackground();
+                drawPlatforms();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Start gry
+        function startGame() {
+            score = 0;
+            lives = 3;
+            scoreText.innerText = score;
+            livesText.innerText = lives;
+            gameState = 'PLAYING';
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            winScreen.classList.add('hidden');
+
+            player.reset();
+            initLevel();
+        }
+
+        // Powrót do ekranu startowego (Menu)
+        function goToStartScreen() {
+            gameState = 'START';
+            gameOverScreen.classList.add('hidden');
+            winScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            setRandomMenuQuote();
+        }
+
+        // Eventy przycisków menu
+        startBtn.addEventListener('click', startGame);
+        restartBtnLost.addEventListener('click', startGame);
+        restartBtnWin.addEventListener('click', startGame);
+        homeBtnLost.addEventListener('click', goToStartScreen);
+        homeBtnWin.addEventListener('click', goToStartScreen);
+
+        // Uruchomienie pętli rysowania po załadowaniu
+        window.onload = () => {
+            initLevel();
+            setRandomMenuQuote();
+            requestAnimationFrame(gameLoop);
+
+            // Rejestracja Service Workera dla trybu PWA (Offline & Instalacja)
+            if ('serviceWorker' in navigator) {
+                const swCode = `
+                    const CACHE_NAME = 'zagorze-v1';
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+                    });
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+            }
+        };
+    </script>
+</body>
+</html>
